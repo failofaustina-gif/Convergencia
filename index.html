@@ -230,6 +230,7 @@
 <nav class="tabs">
   <button class="tab-btn active" data-tab="tab1">Trayectoria temporal</button>
   <button class="tab-btn" data-tab="tab2">Diagrama clásico</button>
+  <button class="tab-btn" data-tab="tab-phase">Diagrama de fases</button>
   <button class="tab-btn" data-tab="tab3">&beta; y &sigma;-convergencia</button>
 </nav>
 
@@ -285,6 +286,36 @@
         </div>
       </div>
     </div>
+  </section>
+
+  <!-- TAB PHASE: growth rate of k vs k -->
+  <section class="panel" id="tab-phase">
+    <h2>Diagrama de fases: &Delta;k/k en función de k</h2>
+    <p class="desc">La tasa de crecimiento del capital por trabajador, <span style="font-style:italic">&Delta;k/k = s&middot;k<sup>&alpha;&minus;1</sup> &minus; (&delta;+n)</span>, es positiva cuando k &lt; k* y negativa cuando k &gt; k*. Solo en k* esa tasa es exactamente cero: ahí el sistema deja de moverse.</p>
+    <div class="layout">
+      <div class="controls">
+        <div class="control"><label>Tasa de ahorro (s)<span class="val" id="pp-s-out">0.25</span></label><input type="range" id="pp-s" min="0.05" max="0.6" step="0.01" value="0.25"></div>
+        <div class="control"><label>Depreciación (&delta;)<span class="val" id="pp-delta-out">0.05</span></label><input type="range" id="pp-delta" min="0.01" max="0.2" step="0.01" value="0.05"></div>
+        <div class="control"><label>Crec. poblacional (n)<span class="val" id="pp-n-out">0.02</span></label><input type="range" id="pp-n" min="0" max="0.1" step="0.01" value="0.02"></div>
+        <div class="control"><label>Participación capital (&alpha;)<span class="val" id="pp-alpha-out">0.33</span></label><input type="range" id="pp-alpha" min="0.1" max="0.6" step="0.01" value="0.33"></div>
+        <div class="control"><label>Capital actual (k)<span class="val" id="pp-k-out">&ndash;</span></label><input type="range" id="pp-k" min="0" max="1" step="0.002" value="0.32"></div>
+        <div class="stats">
+          <div class="stat"><p class="label">k* estado estac.</p><p class="value" id="pp-kstar">&ndash;</p></div>
+          <div class="stat"><p class="label">&Delta;k/k en k actual</p><p class="value" id="pp-gcur">&ndash;</p></div>
+        </div>
+      </div>
+      <div>
+        <p id="pp-status" style="font-size:13px;font-weight:600;margin:0 0 8px;color:var(--ink-soft);">&nbsp;</p>
+        <div class="chart-wrap"><canvas id="pp-chart" role="img" aria-label="Diagrama de fases: tasa de crecimiento del capital por trabajador en función de k">Diagrama de fases mostrando que la tasa de crecimiento del capital es positiva por debajo del estado estacionario y negativa por encima.</canvas></div>
+        <div class="legend">
+          <span><span class="swatch" style="background:#243b55"></span>&Delta;k/k = s&middot;k^(&alpha;&minus;1) &minus; (&delta;+n)</span>
+          <span><span class="swatch" style="background:#b5562f;border-top:2px dashed #b5562f;height:0"></span>k*</span>
+          <span><span class="dot" style="background:#3f6b4d"></span>k actual</span>
+          <span><span class="swatch" style="background:#3f6b4d"></span>flechas = dirección de movimiento de k</span>
+        </div>
+      </div>
+    </div>
+    <p class="note">Lejos del estado estacionario la economía crece (o decrece) a una tasa distinta de la de largo plazo: si k &lt; k*, el capital por trabajador crece (flechas &rarr;) hasta alcanzar k*; si k &gt; k*, decrece (flechas &larr;). Recién en k* la tasa de crecimiento de k es 0 &mdash; el producto por trabajador deja de crecer y la economía converge a crecer a la tasa n (población), no antes.</p>
   </section>
 
   <!-- TAB 3: beta / sigma convergence -->
@@ -445,6 +476,124 @@ const MUTE = '#938f80';
     }
   }
   ids.forEach(id => document.getElementById('p2-'+id).addEventListener('input', render));
+  render();
+})();
+
+// ================= PHASE DIAGRAM: growth rate of k vs k =================
+(function(){
+  const pids = ['s','delta','n','alpha'];
+  const get = () => Object.fromEntries(pids.map(id => [id, parseFloat(document.getElementById('pp-'+id).value)]));
+  let chart;
+
+  const phaseArrows = {
+    id:'phaseArrows',
+    afterDraw(c){
+      if(c.canvas.id !== 'pp-chart') return;
+      const {ctx, chartArea, scales} = c;
+      const meta = c.$phaseMeta;
+      if(!meta) return;
+      const y0 = scales.y.getPixelForValue(0);
+      const xKstar = scales.x.getPixelForValue(meta.kstar);
+      ctx.save();
+      ctx.strokeStyle = '#3f6b4d';
+      ctx.fillStyle = '#3f6b4d';
+      ctx.lineWidth = 1.5;
+      function arrow(xStart, xEnd){
+        if(Math.abs(xEnd - xStart) < 16) return;
+        ctx.beginPath();
+        ctx.moveTo(xStart, y0);
+        ctx.lineTo(xEnd, y0);
+        ctx.stroke();
+        const dir = xEnd > xStart ? 1 : -1;
+        ctx.beginPath();
+        ctx.moveTo(xEnd, y0);
+        ctx.lineTo(xEnd - dir*7, y0-4);
+        ctx.lineTo(xEnd - dir*7, y0+4);
+        ctx.closePath();
+        ctx.fill();
+      }
+      arrow(chartArea.left+12, xKstar-8);
+      arrow(chartArea.right-12, xKstar+8);
+      ctx.restore();
+    }
+  };
+
+  function render(){
+    const v = get();
+    pids.forEach(id => document.getElementById('pp-'+id+'-out').textContent = v[id].toFixed(2));
+    const dn = v.delta + v.n;
+    const kstar = Math.pow(v.s/dn, 1/(1-v.alpha));
+    document.getElementById('pp-kstar').textContent = kstar.toFixed(2);
+
+    const kmin = Math.max(kstar*0.12, 0.02);
+    const kmax = kstar*2.4;
+    const N = 90;
+    const kgrid = Array.from({length:N+1}, (_,i)=> kmin + (kmax-kmin)*i/N);
+    const gvals = kgrid.map(k => v.s*Math.pow(k, v.alpha-1) - dn);
+    const gcurve = kgrid.map((k,i)=>({x:k, y:gvals[i]}));
+
+    const gMax = Math.max(...gvals);
+    const gMin = Math.min(...gvals);
+    const yPad = (gMax-gMin)*0.1 || 0.02;
+    const yMin = gMin - yPad, yMax = gMax + yPad;
+
+    const kFrac = parseFloat(document.getElementById('pp-k').value);
+    const kcur = kmin + kFrac*(kmax-kmin);
+    const gcur = v.s*Math.pow(kcur, v.alpha-1) - dn;
+    document.getElementById('pp-k-out').textContent = kcur.toFixed(2);
+    document.getElementById('pp-gcur').textContent = (gcur*100).toFixed(1)+'%';
+
+    const statusEl = document.getElementById('pp-status');
+    if(Math.abs(kcur-kstar) < (kmax-kmin)*0.01){
+      statusEl.textContent = 'k actual ≈ k*: la tasa de crecimiento de k es ≈ 0, el sistema está en reposo.';
+      statusEl.style.color = 'var(--ink-soft)';
+    } else if(kcur < kstar){
+      statusEl.textContent = `k actual < k*: Δk/k = ${(gcur*100).toFixed(1)}% > 0, el capital por trabajador está creciendo hacia k*.`;
+      statusEl.style.color = 'var(--moss)';
+    } else {
+      statusEl.textContent = `k actual > k*: Δk/k = ${(gcur*100).toFixed(1)}% < 0, el capital por trabajador se está achicando hacia k*.`;
+      statusEl.style.color = 'var(--rust)';
+    }
+
+    const zeroLine = [{x:kmin,y:0},{x:kmax,y:0}];
+    const kstarLine = [{x:kstar,y:yMin},{x:kstar,y:yMax}];
+    const curPoint = [{x:kcur,y:gcur}];
+
+    if(!chart){
+      chart = new Chart(document.getElementById('pp-chart'), {
+        type:'line',
+        data:{ datasets:[
+          { label:'Δk/k', data:gcurve, borderColor:'#243b55', borderWidth:2, pointRadius:0, tension:0.1, parsing:false },
+          { label:'zero', data:zeroLine, borderColor:GRID, borderWidth:1, borderDash:[3,3], pointRadius:0, parsing:false },
+          { label:'k*', data:kstarLine, borderColor:'#b5562f', borderWidth:1.5, borderDash:[5,4], pointRadius:0, parsing:false },
+          { label:'k actual', type:'scatter', data:curPoint, backgroundColor:'#3f6b4d', borderColor:'#3f6b4d', pointRadius:6, showLine:false, parsing:false }
+        ]},
+        options:{
+          responsive:true, maintainAspectRatio:false, animation:{duration:200},
+          plugins:{legend:{display:false}},
+          scales:{
+            x:{ type:'linear', title:{display:true,text:'k',color:MUTE,font:{size:11}}, ticks:{color:MUTE,font:{size:10},maxTicksLimit:6}, grid:{display:false}, min:kmin, max:kmax },
+            y:{ title:{display:true,text:'Δk/k',color:MUTE,font:{size:11}}, ticks:{color:MUTE,font:{size:10},callback:val=>(val*100).toFixed(0)+'%'}, grid:{color:GRID}, min:yMin, max:yMax }
+          }
+        },
+        plugins:[phaseArrows]
+      });
+      chart.$phaseMeta = {kstar};
+    } else {
+      chart.data.datasets[0].data = gcurve;
+      chart.data.datasets[1].data = zeroLine;
+      chart.data.datasets[2].data = kstarLine;
+      chart.data.datasets[3].data = curPoint;
+      chart.options.scales.x.min = kmin;
+      chart.options.scales.x.max = kmax;
+      chart.options.scales.y.min = yMin;
+      chart.options.scales.y.max = yMax;
+      chart.$phaseMeta = {kstar};
+      chart.update();
+    }
+  }
+  pids.forEach(id => document.getElementById('pp-'+id).addEventListener('input', render));
+  document.getElementById('pp-k').addEventListener('input', render);
   render();
 })();
 
