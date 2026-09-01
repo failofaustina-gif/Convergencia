@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Convergencia en el modelo de Solow</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+  :root{
+    --paper:#faf8f3;
+    --panel:#ffffff;
+    --ink:#20201c;
+    --ink-soft:#5b584f;
+    --ink-mute:#938f80;
+    --line:#e4e0d4;
+    --navy:#243b55;
+    --navy-soft:#5d7a9c;
+    --rust:#b5562f;
+    --moss:#3f6b4d;
+    --focus:#243b55;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Inter',system-ui,sans-serif;
+    line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+  }
+  a{color:var(--navy);}
+  header.hero{
+    max-width:900px;
+    margin:0 auto;
+    padding:4.5rem 1.5rem 2.5rem;
+  }
+  header.hero .kicker{
+    font-size:13px;
+    color:var(--ink-mute);
+    letter-spacing:0.02em;
+    margin:0 0 0.75rem;
+  }
+  header.hero h1{
+    font-family:'Source Serif 4',serif;
+    font-weight:600;
+    font-size:clamp(2rem, 4.5vw, 3rem);
+    line-height:1.12;
+    margin:0 0 1rem;
+    max-width:16ch;
+  }
+  header.hero p{
+    font-size:17px;
+    color:var(--ink-soft);
+    max-width:62ch;
+    margin:0;
+  }
+  header.hero .eq{
+    font-family:'Source Serif 4',serif;
+    font-style:italic;
+    color:var(--navy);
+  }
+  nav.tabs{
+    max-width:900px;
+    margin:0 auto;
+    padding:0 1.5rem;
+    display:flex;
+    gap:4px;
+    border-bottom:1px solid var(--line);
+    position:sticky;
+    top:0;
+    background:var(--paper);
+    z-index:10;
+    overflow-x:auto;
+  }
+  nav.tabs button{
+    appearance:none;
+    background:none;
+    border:none;
+    border-bottom:2px solid transparent;
+    padding:14px 16px 12px;
+    font-family:'Inter',sans-serif;
+    font-size:14px;
+    font-weight:500;
+    color:var(--ink-mute);
+    cursor:pointer;
+    white-space:nowrap;
+  }
+  nav.tabs button:hover{ color:var(--ink); }
+  nav.tabs button.active{
+    color:var(--navy);
+    border-bottom-color:var(--navy);
+  }
+  main{
+    max-width:900px;
+    margin:0 auto;
+    padding:2.5rem 1.5rem 5rem;
+  }
+  section.panel{ display:none; }
+  section.panel.active{ display:block; }
+  section.panel h2{
+    font-family:'Source Serif 4',serif;
+    font-weight:600;
+    font-size:24px;
+    margin:0 0 6px;
+  }
+  section.panel > p.desc{
+    color:var(--ink-soft);
+    font-size:15px;
+    margin:0 0 2rem;
+    max-width:62ch;
+  }
+  .layout{
+    display:grid;
+    grid-template-columns: 260px 1fr;
+    gap:2.5rem;
+    align-items:start;
+  }
+  @media (max-width: 720px){
+    .layout{ grid-template-columns: 1fr; }
+  }
+  .controls{
+    display:flex;
+    flex-direction:column;
+    gap:20px;
+  }
+  .control label{
+    display:flex;
+    justify-content:space-between;
+    font-size:13px;
+    color:var(--ink-soft);
+    margin-bottom:6px;
+  }
+  .control label .val{
+    color:var(--ink);
+    font-weight:600;
+    font-variant-numeric:tabular-nums;
+  }
+  input[type=range]{
+    -webkit-appearance:none;
+    width:100%;
+    height:2px;
+    background:var(--line);
+    border-radius:2px;
+    outline:none;
+  }
+  input[type=range]::-webkit-slider-thumb{
+    -webkit-appearance:none;
+    width:16px; height:16px;
+    border-radius:50%;
+    background:var(--navy);
+    cursor:pointer;
+    border:2px solid var(--paper);
+    box-shadow:0 0 0 1px var(--navy);
+  }
+  input[type=range]::-moz-range-thumb{
+    width:16px; height:16px;
+    border-radius:50%;
+    background:var(--navy);
+    cursor:pointer;
+    border:2px solid var(--paper);
+    box-shadow:0 0 0 1px var(--navy);
+  }
+  input[type=range]:focus-visible::-webkit-slider-thumb{
+    box-shadow:0 0 0 3px rgba(36,59,85,0.3);
+  }
+  .stats{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+    margin-top:8px;
+  }
+  .stat{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:6px;
+    padding:12px 14px;
+  }
+  .stat .label{ font-size:12px; color:var(--ink-mute); margin:0 0 4px; }
+  .stat .value{ font-family:'Source Serif 4',serif; font-size:22px; margin:0; }
+  .chart-wrap{
+    position:relative;
+    width:100%;
+    height:280px;
+    margin-bottom:0.5rem;
+  }
+  .chart-wrap.short{ height:210px; }
+  .legend{
+    display:flex;
+    flex-wrap:wrap;
+    gap:16px;
+    font-size:12px;
+    color:var(--ink-soft);
+    margin-top:6px;
+  }
+  .legend span{ display:flex; align-items:center; gap:6px; }
+  .legend .swatch{ width:12px; height:2px; display:inline-block; }
+  .legend .dot{ width:8px; height:8px; border-radius:50%; display:inline-block; }
+  .note{
+    font-size:13px;
+    color:var(--ink-soft);
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-left:3px solid var(--navy);
+    padding:12px 14px;
+    border-radius:4px;
+    margin-top:1.5rem;
+    max-width:62ch;
+  }
+  footer{
+    max-width:900px;
+    margin:0 auto;
+    padding:2rem 1.5rem 4rem;
+    color:var(--ink-mute);
+    font-size:13px;
+    border-top:1px solid var(--line);
+  }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <p class="kicker">Modelo de Solow &mdash; material de clase</p>
+  <h1>Convergencia en el modelo de Solow</h1>
+  <p>Tres formas de ver el mismo mecanismo: la trayectoria de <span class="eq">k(t)</span> hacia el estado estacionario, el diagrama clásico de ahorro y depreciación, y la diferencia entre &beta;-convergencia y &sigma;-convergencia entre economías.</p>
+</header>
+
+<nav class="tabs">
+  <button class="tab-btn active" data-tab="tab1">Trayectoria temporal</button>
+  <button class="tab-btn" data-tab="tab2">Diagrama clásico</button>
+  <button class="tab-btn" data-tab="tab3">&beta; y &sigma;-convergencia</button>
+</nav>
+
+<main>
+
+  <!-- TAB 1: convergence path -->
+  <section class="panel active" id="tab1">
+    <h2>Trayectoria de k(t)</h2>
+    <p class="desc">Simulación de <span style="font-style:italic">k<sub>t+1</sub> &minus; k<sub>t</sub> = s&middot;k<sub>t</sub><sup>&alpha;</sup> &minus; (&delta;+n)k<sub>t</sub></span> partiendo de un capital inicial dado.</p>
+    <div class="layout">
+      <div class="controls">
+        <div class="control"><label>Tasa de ahorro (s)<span class="val" id="p1-s-out">0.25</span></label><input type="range" id="p1-s" min="0.05" max="0.6" step="0.01" value="0.25"></div>
+        <div class="control"><label>Depreciación (&delta;)<span class="val" id="p1-delta-out">0.05</span></label><input type="range" id="p1-delta" min="0.01" max="0.2" step="0.01" value="0.05"></div>
+        <div class="control"><label>Crec. poblacional (n)<span class="val" id="p1-n-out">0.02</span></label><input type="range" id="p1-n" min="0" max="0.1" step="0.01" value="0.02"></div>
+        <div class="control"><label>Participación capital (&alpha;)<span class="val" id="p1-alpha-out">0.33</span></label><input type="range" id="p1-alpha" min="0.1" max="0.6" step="0.01" value="0.33"></div>
+        <div class="control"><label>Capital inicial (k&#8320;)<span class="val" id="p1-k0-out">1.0</span></label><input type="range" id="p1-k0" min="0.1" max="10" step="0.1" value="1"></div>
+        <div class="stats">
+          <div class="stat"><p class="label">k* estado estac.</p><p class="value" id="p1-kstar">&ndash;</p></div>
+          <div class="stat"><p class="label">Periodos a 95%</p><p class="value" id="p1-tconv">&ndash;</p></div>
+        </div>
+      </div>
+      <div>
+        <div class="chart-wrap"><canvas id="p1-chart" role="img" aria-label="Trayectoria de k(t) convergiendo al estado estacionario">Trayectoria del capital por trabajador convergiendo al estado estacionario.</canvas></div>
+        <div class="legend">
+          <span><span class="swatch" style="background:#243b55"></span>Trayectoria k(t)</span>
+          <span><span class="swatch" style="background:#b5562f;border-top:2px dashed #b5562f;height:0"></span>Estado estacionario k*</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TAB 2: classic diagram -->
+  <section class="panel" id="tab2">
+    <h2>Función de producción, ahorro y depreciación</h2>
+    <p class="desc">El punto de equilibrio es donde la curva de ahorro <span style="font-style:italic">s&middot;f(k)</span> corta la recta de depreciación efectiva <span style="font-style:italic">(&delta;+n)k</span>.</p>
+    <div class="layout">
+      <div class="controls">
+        <div class="control"><label>Tasa de ahorro (s)<span class="val" id="p2-s-out">0.25</span></label><input type="range" id="p2-s" min="0.05" max="0.6" step="0.01" value="0.25"></div>
+        <div class="control"><label>Depreciación (&delta;)<span class="val" id="p2-delta-out">0.05</span></label><input type="range" id="p2-delta" min="0.01" max="0.2" step="0.01" value="0.05"></div>
+        <div class="control"><label>Crec. poblacional (n)<span class="val" id="p2-n-out">0.02</span></label><input type="range" id="p2-n" min="0" max="0.1" step="0.01" value="0.02"></div>
+        <div class="control"><label>Participación capital (&alpha;)<span class="val" id="p2-alpha-out">0.33</span></label><input type="range" id="p2-alpha" min="0.1" max="0.6" step="0.01" value="0.33"></div>
+        <div class="stats" style="grid-template-columns:1fr;">
+          <div class="stat"><p class="label">k* estado estacionario</p><p class="value" id="p2-kstar">&ndash;</p></div>
+        </div>
+      </div>
+      <div>
+        <div class="chart-wrap"><canvas id="p2-chart" role="img" aria-label="Diagrama de Solow con función de producción, curva de ahorro y recta de depreciación">Diagrama de Solow: la curva de ahorro corta la recta de depreciación en el capital de estado estacionario.</canvas></div>
+        <div class="legend">
+          <span><span class="swatch" style="background:#5b584f"></span>f(k) = k^&alpha;</span>
+          <span><span class="swatch" style="background:#243b55"></span>s&middot;f(k)</span>
+          <span><span class="swatch" style="background:#c98a3b"></span>(&delta;+n)k</span>
+          <span><span class="dot" style="background:#b5562f"></span>k*</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TAB 3: beta / sigma convergence -->
+  <section class="panel" id="tab3">
+    <h2>&beta;-convergencia y &sigma;-convergencia</h2>
+    <p class="desc">Simulación de 12 economías con distinto capital inicial pero los mismos parámetros estructurales (mismo k*).</p>
+    <div class="layout">
+      <div class="controls">
+        <div class="control"><label>Tasa de ahorro (s)<span class="val" id="p3-s-out">0.25</span></label><input type="range" id="p3-s" min="0.05" max="0.6" step="0.01" value="0.25"></div>
+        <div class="control"><label>(&delta;+n)<span class="val" id="p3-dn-out">0.07</span></label><input type="range" id="p3-dn" min="0.02" max="0.2" step="0.01" value="0.07"></div>
+        <div class="control"><label>Participación capital (&alpha;)<span class="val" id="p3-alpha-out">0.33</span></label><input type="range" id="p3-alpha" min="0.1" max="0.6" step="0.01" value="0.33"></div>
+        <div class="control"><label>Dispersión inicial<span class="val" id="p3-disp-out">0.8</span></label><input type="range" id="p3-disp" min="0.1" max="1.5" step="0.1" value="0.8"></div>
+      </div>
+      <div>
+        <p style="font-size:13px;font-weight:600;margin:0 0 4px;">&beta;-convergencia: crecimiento vs. ingreso inicial</p>
+        <p style="font-size:12px;color:var(--ink-mute);margin:0 0 8px;">Pendiente negativa = las economías más pobres crecen más rápido.</p>
+        <div class="chart-wrap short"><canvas id="p3-beta" role="img" aria-label="Dispersión de tasa de crecimiento contra nivel inicial de ingreso por economía">Economías con menor ingreso inicial crecen más rápido cuando hay beta convergencia.</canvas></div>
+
+        <p style="font-size:13px;font-weight:600;margin:1.5rem 0 4px;">&sigma;-convergencia: dispersión entre economías en el tiempo</p>
+        <p style="font-size:12px;color:var(--ink-mute);margin:0 0 8px;">Desviación estándar de ln(y) entre economías a lo largo del tiempo.</p>
+        <div class="chart-wrap short"><canvas id="p3-sigma" role="img" aria-label="Evolución de la desviación estándar del logaritmo del ingreso a lo largo del tiempo">La dispersión entre economías puede no bajar aunque exista beta convergencia si hay shocks.</canvas></div>
+      </div>
+    </div>
+    <p class="note">La &beta;-convergencia es condición necesaria pero no suficiente para la &sigma;-convergencia: acá no hay shocks (&mu;<sub>i,t</sub>), así que &sigma; cae de forma monótona. En la práctica, shocks idiosincráticos pueden frenar o revertir la caída de &sigma; aunque &beta; siga siendo negativo.</p>
+  </section>
+
+</main>
+
+<footer>
+  Material interactivo del modelo de Solow &mdash; &beta;-convergencia y &sigma;-convergencia.
+</footer>
+
+<script>
+// ---------- tabs ----------
+document.querySelectorAll('.tab-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById(btn.dataset.tab).classList.add('active');
+    // re-layout charts once visible
+    setTimeout(()=>{ if(window.Chart){ Object.values(Chart.instances).forEach(c=>c.resize()); } }, 30);
+  });
+});
+
+// ---------- shared helpers ----------
+const GRID = '#efece2';
+const MUTE = '#938f80';
+
+// ================= PANEL 1: k(t) path =================
+(function(){
+  const ids = ['s','delta','n','alpha','k0'];
+  const get = () => Object.fromEntries(ids.map(id => [id, parseFloat(document.getElementById('p1-'+id).value)]));
+  let chart;
+
+  function simulate(v){
+    const T = 60;
+    const kpath = [v.k0];
+    let k = v.k0;
+    for(let t=1;t<=T;t++){
+      const y = Math.pow(k, v.alpha);
+      k = Math.max(k + v.s*y - (v.delta+v.n)*k, 0.001);
+      kpath.push(k);
+    }
+    const kstar = Math.pow(v.s/(v.delta+v.n), 1/(1-v.alpha));
+    let tconv = T;
+    for(let t=0;t<kpath.length;t++){
+      if(Math.abs(kpath[t]-kstar) <= 0.05*kstar){ tconv = t; break; }
+    }
+    return {kpath, kstar, tconv, T};
+  }
+
+  function render(){
+    const v = get();
+    ids.forEach(id => {
+      document.getElementById('p1-'+id+'-out').textContent = id==='k0' ? v[id].toFixed(1) : v[id].toFixed(2);
+    });
+    const {kpath, kstar, tconv, T} = simulate(v);
+    document.getElementById('p1-kstar').textContent = kstar.toFixed(2);
+    document.getElementById('p1-tconv').textContent = tconv < T ? tconv : T+'+';
+
+    const labels = kpath.map((_,i)=>i);
+    const kstarLine = kpath.map(()=>kstar);
+
+    if(!chart){
+      chart = new Chart(document.getElementById('p1-chart'), {
+        type:'line',
+        data:{ labels, datasets:[
+          { label:'k(t)', data:kpath, borderColor:'#243b55', borderWidth:2, pointRadius:0, tension:0.15 },
+          { label:'k*', data:kstarLine, borderColor:'#b5562f', borderWidth:1.5, borderDash:[5,4], pointRadius:0 }
+        ]},
+        options:{
+          responsive:true, maintainAspectRatio:false, animation:{duration:250},
+          plugins:{legend:{display:false}},
+          scales:{
+            x:{ title:{display:true,text:'periodo t',color:MUTE,font:{size:11}}, ticks:{color:MUTE,font:{size:10},maxTicksLimit:8}, grid:{display:false} },
+            y:{ title:{display:true,text:'k',color:MUTE,font:{size:11}}, ticks:{color:MUTE,font:{size:10}}, grid:{color:GRID} }
+          }
+        }
+      });
+    } else {
+      chart.data.labels = labels;
+      chart.data.datasets[0].data = kpath;
+      chart.data.datasets[1].data = kstarLine;
+      chart.update();
+    }
+  }
+  ids.forEach(id => document.getElementById('p1-'+id).addEventListener('input', render));
+  render();
+})();
+
+// ================= PANEL 2: classic diagram =================
+(function(){
+  const ids = ['s','delta','n','alpha'];
+  const get = () => Object.fromEntries(ids.map(id => [id, parseFloat(document.getElementById('p2-'+id).value)]));
+  let chart;
+
+  function render(){
+    const v = get();
+    ids.forEach(id => document.getElementById('p2-'+id+'-out').textContent = v[id].toFixed(2));
+    const kstar = Math.pow(v.s/(v.delta+v.n), 1/(1-v.alpha));
+    document.getElementById('p2-kstar').textContent = kstar.toFixed(2);
+
+    const kmax = Math.max(kstar*2.2, 2);
+    const N = 60;
+    const kgrid = Array.from({length:N+1}, (_,i)=> kmax*i/N);
+    const fk = kgrid.map(k => Math.pow(k, v.alpha));
+    const sfk = fk.map(y => v.s*y);
+    const depLine = kgrid.map(k => (v.delta+v.n)*k);
+    const kstarPoint = {x:kstar, y:v.s*Math.pow(kstar, v.alpha)};
+
+    if(!chart){
+      chart = new Chart(document.getElementById('p2-chart'), {
+        type:'line',
+        data:{ labels:kgrid.map(k=>k.toFixed(2)), datasets:[
+          { label:'f(k)', data:fk, borderColor:'#5b584f', borderWidth:2, pointRadius:0, tension:0.1 },
+          { label:'s·f(k)', data:sfk, borderColor:'#243b55', borderWidth:2, pointRadius:0, tension:0.1 },
+          { label:'(δ+n)k', data:depLine, borderColor:'#c98a3b', borderWidth:2, pointRadius:0, tension:0 },
+          { label:'k*', type:'scatter', data:[kstarPoint], backgroundColor:'#b5562f', borderColor:'#b5562f', pointRadius:5, showLine:false, parsing:false }
+        ]},
+        options:{
+          responsive:true, maintainAspectRatio:false, animation:{duration:250},
+          plugins:{legend:{display:false}},
+          scales:{
+            x:{ type:'linear', title:{display:true,text:'k',color:MUTE,font:{size:11}}, ticks:{color:MUTE,font:{size:10},maxTicksLimit:6}, grid:{display:false}, min:0, max:kmax },
+            y:{ title:{display:true,text:'y',color:MUTE,font:{size:11}}, ticks:{color:MUTE,font:{size:10}}, grid:{color:GRID}, min:0 }
+          }
+        }
+      });
+    } else {
+      chart.data.labels = kgrid.map(k=>k.toFixed(2));
+      chart.data.datasets[0].data = fk;
+      chart.data.datasets[1].data = sfk;
+      chart.data.datasets[2].data = depLine;
+      chart.data.datasets[3].data = [kstarPoint];
+      chart.options.scales.x.max = kmax;
+      chart.update();
+    }
+  }
+  ids.forEach(id => document.getElementById('p2-'+id).addEventListener('input', render));
+  render();
+})();
+
+// ================= PANEL 3: beta / sigma convergence =================
+(function(){
+  const ids = ['s','dn','alpha','disp'];
+  const get = () => Object.fromEntries(ids.map(id => [id, parseFloat(document.getElementById('p3-'+id).value)]));
+  const NECON = 12;
+  const seeds = Array.from({length:NECON}, (_,i)=> (i - (NECON-1)/2) / ((NECON-1)/2));
+  let betaChart, sigmaChart;
+
+  function simulateAll(v){
+    const T = 25;
+    const kstar = Math.pow(v.s/v.dn, 1/(1-v.alpha));
+    const k0s = seeds.map(z => Math.max(kstar*Math.exp(z*v.disp), 0.05));
+    const paths = k0s.map(k0 => {
+      let k = k0;
+      const path = [k];
+      for(let t=1;t<=T;t++){
+        const y = Math.pow(k, v.alpha);
+        k = Math.max(k + v.s*y - v.dn*k, 0.001);
+        path.push(k);
+      }
+      return path;
+    });
+    const sigmaPath = [];
+    for(let t=0;t<=T;t++){
+      const lnys = paths.map(p => v.alpha*Math.log(p[t]));
+      const mean = lnys.reduce((a,b)=>a+b,0)/lnys.length;
+      const variance = lnys.reduce((a,b)=>a+(b-mean)**2,0)/lnys.length;
+      sigmaPath.push(Math.sqrt(variance));
+    }
+    const growthPoints = paths.map(p => {
+      const ln_y0 = v.alpha*Math.log(p[0]);
+      const ln_yT = v.alpha*Math.log(p[T]);
+      return {x:ln_y0, y:(ln_yT-ln_y0)/T};
+    });
+    return {sigmaPath, growthPoints, T};
+  }
+
+  function render(){
+    const v = get();
+    ids.forEach(id => document.getElementById('p3-'+id+'-out').textContent = v[id].toFixed(2));
+    const {sigmaPath, growthPoints, T} = simulateAll(v);
+
+    if(!betaChart){
+      betaChart = new Chart(document.getElementById('p3-beta'), {
+        type:'scatter',
+        data:{ datasets:[{ data:growthPoints, backgroundColor:'#243b55', pointRadius:4 }] },
+        options:{
+          responsive:true, maintainAspectRatio:false,
+          plugins:{legend:{display:false}},
+          scales:{
+            x:{ title:{display:true,text:'ln(y₀)',color:MUTE,font:{size:11}}, ticks:{color:MUTE,font:{size:10}}, grid:{color:GRID} },
+            y:{ title:{display:true,text:'crecimiento prom.',color:MUTE,font:{size:11}}, ticks:{color:MUTE,font:{size:10}}, grid:{color:GRID} }
+          }
+        }
+      });
+    } else {
+      betaChart.data.datasets[0].data = growthPoints;
+      betaChart.update();
+    }
+
+    const sigmaLabels = Array.from({length:T+1},(_,i)=>i);
+    if(!sigmaChart){
+      sigmaChart = new Chart(document.getElementById('p3-sigma'), {
+        type:'line',
+        data:{ labels:sigmaLabels, datasets:[{ data:sigmaPath, borderColor:'#3f6b4d', borderWidth:2, pointRadius:0, tension:0.15 }] },
+        options:{
+          responsive:true, maintainAspectRatio:false,
+          plugins:{legend:{display:false}},
+          scales:{
+            x:{ title:{display:true,text:'periodo t',color:MUTE,font:{size:11}}, ticks:{color:MUTE,font:{size:10},maxTicksLimit:8}, grid:{display:false} },
+            y:{ title:{display:true,text:'σ = sd(ln y)',color:MUTE,font:{size:11}}, ticks:{color:MUTE,font:{size:10}}, grid:{color:GRID}, min:0 }
+          }
+        }
+      });
+    } else {
+      sigmaChart.data.labels = sigmaLabels;
+      sigmaChart.data.datasets[0].data = sigmaPath;
+      sigmaChart.update();
+    }
+  }
+  ids.forEach(id => document.getElementById('p3-'+id).addEventListener('input', render));
+  render();
+})();
+</script>
+
+</body>
+</html>
