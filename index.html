@@ -217,6 +217,61 @@
     font-size:13px;
     border-top:1px solid var(--line);
   }
+  .btn{
+    appearance:none;
+    background:var(--panel);
+    border:1px solid var(--navy);
+    color:var(--navy);
+    font-family:'Inter',sans-serif;
+    font-size:13px;
+    font-weight:600;
+    padding:9px 12px;
+    border-radius:6px;
+    cursor:pointer;
+    width:100%;
+  }
+  .btn:hover{ background:#eef1f5; }
+  .btn.active{ background:var(--navy); color:#fff; }
+  .base-stats{ display:none; }
+  .base-stats.show{ display:grid; }
+  .formula-box{
+    border:1px solid var(--line);
+    background:var(--panel);
+    border-radius:6px;
+    padding:14px 16px;
+    margin-bottom:1.25rem;
+  }
+  .formula-eq{
+    font-family:'Source Serif 4',serif;
+    font-style:italic;
+    font-size:16px;
+    margin:0 0 8px;
+    color:var(--navy);
+  }
+  .btn-link{
+    appearance:none;
+    background:none;
+    border:none;
+    color:var(--navy);
+    font-family:'Inter',sans-serif;
+    font-size:12px;
+    font-weight:600;
+    cursor:pointer;
+    padding:0;
+    text-decoration:underline;
+  }
+  .btn-link:hover{ color:var(--rust); }
+  .demo{
+    margin-top:10px;
+    padding-top:10px;
+    border-top:1px dashed var(--line);
+    font-size:13px;
+    color:var(--ink-soft);
+  }
+  .demo[hidden]{ display:none; }
+  .demo .step{ margin:0 0 8px; }
+  .demo .step:last-child{ margin-bottom:0; }
+  .demo .eqline{ font-family:'Source Serif 4',serif; font-style:italic; color:var(--ink); display:block; margin:2px 0; }
 </style>
 </head>
 <body>
@@ -251,6 +306,18 @@
           <div class="stat"><p class="label">k* estado estac.</p><p class="value" id="p1-kstar">&ndash;</p></div>
           <div class="stat"><p class="label">Periodos a 95%</p><p class="value" id="p1-tconv">&ndash;</p></div>
         </div>
+        <div class="formula-box">
+          <p class="formula-eq">k<sub>t+1</sub> &minus; k<sub>t</sub> = s&middot;k<sub>t</sub><sup>&alpha;</sup> &minus; (&delta;+n)k<sub>t</sub></p>
+          <button class="btn-link" data-target="demo-p1">Ver demostración de k*</button>
+          <div class="demo" id="demo-p1" hidden>
+            <p class="step">En el estado estacionario k no cambia: k<sub>t+1</sub> = k<sub>t</sub>, o sea &Delta;k = 0.</p>
+            <p class="step">Igualando a cero:<span class="eqline">0 = s&middot;k*<sup>&alpha;</sup> &minus; (&delta;+n)k*</span></p>
+            <p class="step">Despejando:<span class="eqline">s&middot;k*<sup>&alpha;</sup> = (&delta;+n)k*</span></p>
+            <p class="step">Dividiendo por k*:<span class="eqline">s&middot;k*<sup>&alpha;&minus;1</sup> = &delta;+n</span></p>
+            <p class="step">Despejando k*:<span class="eqline">k*<sup>1&minus;&alpha;</sup> = s/(&delta;+n)</span></p>
+            <p class="step">Elevando a 1/(1&minus;&alpha;):<span class="eqline">k* = [s/(&delta;+n)]<sup>1/(1&minus;&alpha;)</sup></span></p>
+          </div>
+        </div>
       </div>
       <div>
         <div class="chart-wrap"><canvas id="p1-chart" role="img" aria-label="Trayectoria de k(t) convergiendo al estado estacionario">Trayectoria del capital por trabajador convergiendo al estado estacionario.</canvas></div>
@@ -275,6 +342,21 @@
         <div class="stats" style="grid-template-columns:1fr;">
           <div class="stat"><p class="label">k* estado estacionario</p><p class="value" id="p2-kstar">&ndash;</p></div>
         </div>
+        <button class="btn" id="p2-snap-btn" type="button">Fijar curva actual (antes del shock)</button>
+        <div class="stats base-stats" id="p2-base-stats" style="grid-template-columns:1fr;">
+          <div class="stat"><p class="label">k* antes del shock</p><p class="value" id="p2-kstar-base">&ndash;</p></div>
+          <div class="stat"><p class="label">&Delta;k* por el shock</p><p class="value" id="p2-dkstar">&ndash;</p></div>
+        </div>
+        <div class="formula-box">
+          <p class="formula-eq">s&middot;f(k*) = (&delta;+n)k*</p>
+          <button class="btn-link" data-target="demo-p2">Ver demostración de k*</button>
+          <div class="demo" id="demo-p2" hidden>
+            <p class="step">El equilibrio es donde la inversión efectiva iguala la depreciación efectiva:<span class="eqline">s&middot;f(k*) = (&delta;+n)k*</span></p>
+            <p class="step">Con f(k) = k<sup>&alpha;</sup>:<span class="eqline">s&middot;k*<sup>&alpha;</sup> = (&delta;+n)k*</span></p>
+            <p class="step">Dividiendo por k* y despejando:<span class="eqline">k* = [s/(&delta;+n)]<sup>1/(1&minus;&alpha;)</sup></span></p>
+            <p class="step">Es el mismo k* de la trayectoria temporal: para k &lt; k*, s&middot;f(k) &gt; (&delta;+n)k (el capital crece); para k &gt; k*, s&middot;f(k) &lt; (&delta;+n)k (el capital cae).</p>
+          </div>
+        </div>
       </div>
       <div>
         <div class="chart-wrap"><canvas id="p2-chart" role="img" aria-label="Diagrama de Solow con función de producción, curva de ahorro y recta de depreciación">Diagrama de Solow: la curva de ahorro corta la recta de depreciación en el capital de estado estacionario.</canvas></div>
@@ -283,6 +365,7 @@
           <span><span class="swatch" style="background:#243b55"></span>s&middot;f(k)</span>
           <span><span class="swatch" style="background:#c98a3b"></span>(&delta;+n)k</span>
           <span><span class="dot" style="background:#b5562f"></span>k*</span>
+          <span id="p2-base-legend" style="display:none"><span class="swatch" style="background:#a9a49450;border-top:2px dashed #938f80;height:0"></span>curvas antes del shock</span>
         </div>
       </div>
     </div>
@@ -303,6 +386,21 @@
           <div class="stat"><p class="label">k* estado estac.</p><p class="value" id="pp-kstar">&ndash;</p></div>
           <div class="stat"><p class="label">&Delta;k/k en k actual</p><p class="value" id="pp-gcur">&ndash;</p></div>
         </div>
+        <button class="btn" id="pp-snap-btn" type="button">Fijar curva actual (antes del shock)</button>
+        <div class="stats base-stats" id="pp-base-stats" style="grid-template-columns:1fr;">
+          <div class="stat"><p class="label">k* antes del shock</p><p class="value" id="pp-kstar-base">&ndash;</p></div>
+          <div class="stat"><p class="label">&Delta;k* por el shock</p><p class="value" id="pp-dkstar">&ndash;</p></div>
+        </div>
+        <div class="formula-box">
+          <p class="formula-eq">&Delta;k/k = s&middot;k<sup>&alpha;&minus;1</sup> &minus; (&delta;+n)</p>
+          <button class="btn-link" data-target="demo-pp">Ver demostración</button>
+          <div class="demo" id="demo-pp" hidden>
+            <p class="step">Partimos de la ecuación fundamental de Solow:<span class="eqline">&Delta;k = s&middot;k<sup>&alpha;</sup> &minus; (&delta;+n)k</span></p>
+            <p class="step">Dividimos por k para obtener la tasa de crecimiento:<span class="eqline">&Delta;k/k = s&middot;k<sup>&alpha;</sup>/k &minus; (&delta;+n)</span></p>
+            <p class="step">Y k<sup>&alpha;</sup>/k = k<sup>&alpha;&minus;1</sup>, entonces:<span class="eqline">&Delta;k/k = s&middot;k<sup>&alpha;&minus;1</sup> &minus; (&delta;+n)</span></p>
+            <p class="step">Como &alpha; &lt; 1, el exponente &alpha;&minus;1 es negativo: al crecer k, s&middot;k<sup>&alpha;&minus;1</sup> cae, por eso la curva es decreciente y se anula exactamente en k*.</p>
+          </div>
+        </div>
       </div>
       <div>
         <p id="pp-status" style="font-size:13px;font-weight:600;margin:0 0 8px;color:var(--ink-soft);">&nbsp;</p>
@@ -312,6 +410,7 @@
           <span><span class="swatch" style="background:#b5562f;border-top:2px dashed #b5562f;height:0"></span>k*</span>
           <span><span class="dot" style="background:#3f6b4d"></span>k actual</span>
           <span><span class="swatch" style="background:#3f6b4d"></span>flechas = dirección de movimiento de k</span>
+          <span id="pp-base-legend" style="display:none"><span class="swatch" style="background:#938f8080;border-top:2px dashed #938f80;height:0"></span>curva antes del shock</span>
         </div>
       </div>
     </div>
@@ -328,6 +427,16 @@
         <div class="control"><label>(&delta;+n)<span class="val" id="p3-dn-out">0.07</span></label><input type="range" id="p3-dn" min="0.02" max="0.2" step="0.01" value="0.07"></div>
         <div class="control"><label>Participación capital (&alpha;)<span class="val" id="p3-alpha-out">0.33</span></label><input type="range" id="p3-alpha" min="0.1" max="0.6" step="0.01" value="0.33"></div>
         <div class="control"><label>Dispersión inicial<span class="val" id="p3-disp-out">0.8</span></label><input type="range" id="p3-disp" min="0.1" max="1.5" step="0.1" value="0.8"></div>
+        <div class="formula-box">
+          <p class="formula-eq" style="font-size:14px;">g<sub>i</sub> = a + &beta;&middot;ln y<sub>i,0</sub> + u<sub>i</sub></p>
+          <button class="btn-link" data-target="demo-p3">Ver de dónde sale &beta; &lt; 0</button>
+          <div class="demo" id="demo-p3" hidden>
+            <p class="step">Cerca del estado estacionario, la dinámica de k se puede linealizar y se obtiene:<span class="eqline" style="font-size:13px;">d ln k/dt &approx; &minus;&lambda;(ln k &minus; ln k*)</span>con &lambda; = (1&minus;&alpha;)(&delta;+n), la "velocidad de convergencia".</p>
+            <p class="step">La brecha respecto al estado estacionario se cierra a tasa constante &lambda;: mientras más lejos está k de k*, más rápido se mueve k (en valor absoluto) &mdash; es la misma idea del diagrama de fases.</p>
+            <p class="step">Como y = k<sup>&alpha;</sup>, ln y = &alpha;&middot;ln k, así que la misma dinámica aplica a ln y. Al regresionar el crecimiento promedio g<sub>i</sub> contra el ingreso inicial ln y<sub>i,0</sub> en economías con el mismo k*, la pendiente estimada es &beta; = &minus;(1&minus;e<sup>&minus;&lambda;T</sup>)/T &lt; 0.</p>
+          </div>
+          <p style="font-size:12px;color:var(--ink-mute);margin-top:14px;">&sigma;-convergencia: <span style="font-style:italic;color:var(--ink)">&sigma;<sub>t</sub> = sd<sub>i</sub>(ln y<sub>i,t</sub>)</span>, la dispersión entre economías en el tiempo.</p>
+        </div>
       </div>
       <div>
         <p style="font-size:13px;font-weight:600;margin:0 0 4px;">&beta;-convergencia: crecimiento vs. ingreso inicial</p>
@@ -358,6 +467,22 @@ document.querySelectorAll('.tab-btn').forEach(btn=>{
     document.getElementById(btn.dataset.tab).classList.add('active');
     // re-layout charts once visible
     setTimeout(()=>{ if(window.Chart){ Object.values(Chart.instances).forEach(c=>c.resize()); } }, 30);
+  });
+});
+
+// ---------- demo toggles ----------
+document.querySelectorAll('.btn-link[data-target]').forEach(btn=>{
+  const original = btn.textContent;
+  btn.addEventListener('click', ()=>{
+    const target = document.getElementById(btn.dataset.target);
+    const willShow = target.hasAttribute('hidden');
+    if(willShow){
+      target.removeAttribute('hidden');
+      btn.textContent = original.replace(/^Ver/, 'Ocultar');
+    } else {
+      target.setAttribute('hidden','');
+      btn.textContent = original;
+    }
   });
 });
 
@@ -431,21 +556,36 @@ const MUTE = '#938f80';
 (function(){
   const ids = ['s','delta','n','alpha'];
   const get = () => Object.fromEntries(ids.map(id => [id, parseFloat(document.getElementById('p2-'+id).value)]));
-  let chart;
+  let chart, base = null;
+
+  function kstarOf(v){ return Math.pow(v.s/(v.delta+v.n), 1/(1-v.alpha)); }
 
   function render(){
     const v = get();
     ids.forEach(id => document.getElementById('p2-'+id+'-out').textContent = v[id].toFixed(2));
-    const kstar = Math.pow(v.s/(v.delta+v.n), 1/(1-v.alpha));
+    const kstar = kstarOf(v);
     document.getElementById('p2-kstar').textContent = kstar.toFixed(2);
 
-    const kmax = Math.max(kstar*2.2, 2);
+    const kstarForDomain = base ? Math.max(kstar, kstarOf(base)) : kstar;
+    const kmax = Math.max(kstarForDomain*2.2, 2);
     const N = 60;
     const kgrid = Array.from({length:N+1}, (_,i)=> kmax*i/N);
     const fk = kgrid.map(k => Math.pow(k, v.alpha));
     const sfk = fk.map(y => v.s*y);
     const depLine = kgrid.map(k => (v.delta+v.n)*k);
     const kstarPoint = {x:kstar, y:v.s*Math.pow(kstar, v.alpha)};
+
+    let fkBase=[], sfkBase=[], depLineBase=[], kstarPointBase=[];
+    if(base){
+      const kstarB = kstarOf(base);
+      fkBase = kgrid.map(k => Math.pow(k, base.alpha));
+      sfkBase = fkBase.map(y => base.s*y);
+      depLineBase = kgrid.map(k => (base.delta+base.n)*k);
+      kstarPointBase = [{x:kstarB, y:base.s*Math.pow(kstarB, base.alpha)}];
+      document.getElementById('p2-kstar-base').textContent = kstarB.toFixed(2);
+      const d = kstar - kstarB;
+      document.getElementById('p2-dkstar').textContent = (d>=0?'+':'')+d.toFixed(2);
+    }
 
     if(!chart){
       chart = new Chart(document.getElementById('p2-chart'), {
@@ -454,7 +594,11 @@ const MUTE = '#938f80';
           { label:'f(k)', data:fk, borderColor:'#5b584f', borderWidth:2, pointRadius:0, tension:0.1 },
           { label:'s·f(k)', data:sfk, borderColor:'#243b55', borderWidth:2, pointRadius:0, tension:0.1 },
           { label:'(δ+n)k', data:depLine, borderColor:'#c98a3b', borderWidth:2, pointRadius:0, tension:0 },
-          { label:'k*', type:'scatter', data:[kstarPoint], backgroundColor:'#b5562f', borderColor:'#b5562f', pointRadius:5, showLine:false, parsing:false }
+          { label:'k*', type:'scatter', data:[kstarPoint], backgroundColor:'#b5562f', borderColor:'#b5562f', pointRadius:5, showLine:false, parsing:false },
+          { label:'f(k) antes', data:fkBase, borderColor:'#938f8090', borderWidth:1.5, borderDash:[4,3], pointRadius:0, tension:0.1 },
+          { label:'s·f(k) antes', data:sfkBase, borderColor:'#243b5590', borderWidth:1.5, borderDash:[4,3], pointRadius:0, tension:0.1 },
+          { label:'(δ+n)k antes', data:depLineBase, borderColor:'#c98a3b90', borderWidth:1.5, borderDash:[4,3], pointRadius:0, tension:0 },
+          { label:'k* antes', type:'scatter', data:kstarPointBase, backgroundColor:'#faf8f3', borderColor:'#b5562f90', borderWidth:2, pointRadius:5, showLine:false, parsing:false }
         ]},
         options:{
           responsive:true, maintainAspectRatio:false, animation:{duration:250},
@@ -471,10 +615,33 @@ const MUTE = '#938f80';
       chart.data.datasets[1].data = sfk;
       chart.data.datasets[2].data = depLine;
       chart.data.datasets[3].data = [kstarPoint];
+      chart.data.datasets[4].data = fkBase;
+      chart.data.datasets[5].data = sfkBase;
+      chart.data.datasets[6].data = depLineBase;
+      chart.data.datasets[7].data = kstarPointBase;
       chart.options.scales.x.max = kmax;
       chart.update();
     }
   }
+
+  document.getElementById('p2-snap-btn').addEventListener('click', ()=>{
+    const btn = document.getElementById('p2-snap-btn');
+    if(base){
+      base = null;
+      btn.textContent = 'Fijar curva actual (antes del shock)';
+      btn.classList.remove('active');
+      document.getElementById('p2-base-stats').classList.remove('show');
+      document.getElementById('p2-base-legend').style.display = 'none';
+    } else {
+      base = get();
+      btn.textContent = 'Quitar comparación';
+      btn.classList.add('active');
+      document.getElementById('p2-base-stats').classList.add('show');
+      document.getElementById('p2-base-legend').style.display = '';
+    }
+    render();
+  });
+
   ids.forEach(id => document.getElementById('p2-'+id).addEventListener('input', render));
   render();
 })();
@@ -483,7 +650,8 @@ const MUTE = '#938f80';
 (function(){
   const pids = ['s','delta','n','alpha'];
   const get = () => Object.fromEntries(pids.map(id => [id, parseFloat(document.getElementById('pp-'+id).value)]));
-  let chart;
+  let chart, base = null;
+  const kstarOf = v => Math.pow(v.s/(v.delta+v.n), 1/(1-v.alpha));
 
   const phaseArrows = {
     id:'phaseArrows',
@@ -525,17 +693,33 @@ const MUTE = '#938f80';
     const kstar = Math.pow(v.s/dn, 1/(1-v.alpha));
     document.getElementById('pp-kstar').textContent = kstar.toFixed(2);
 
-    const kmin = Math.max(kstar*0.12, 0.02);
-    const kmax = kstar*2.4;
+    const kstarForDomain = base ? Math.max(kstar, kstarOf(base)) : kstar;
+    const kmin = Math.max(kstarForDomain*0.12, 0.02);
+    const kmax = kstarForDomain*2.4;
     const N = 90;
     const kgrid = Array.from({length:N+1}, (_,i)=> kmin + (kmax-kmin)*i/N);
     const gvals = kgrid.map(k => v.s*Math.pow(k, v.alpha-1) - dn);
     const gcurve = kgrid.map((k,i)=>({x:k, y:gvals[i]}));
 
-    const gMax = Math.max(...gvals);
-    const gMin = Math.min(...gvals);
+    let gvalsBase=[], gcurveBase=[], kstarLineBase=[];
+    if(base){
+      const dnB = base.delta+base.n;
+      const kstarB = kstarOf(base);
+      gvalsBase = kgrid.map(k => base.s*Math.pow(k, base.alpha-1) - dnB);
+      gcurveBase = kgrid.map((k,i)=>({x:k, y:gvalsBase[i]}));
+      document.getElementById('pp-kstar-base').textContent = kstarB.toFixed(2);
+      const d = kstar - kstarB;
+      document.getElementById('pp-dkstar').textContent = (d>=0?'+':'')+d.toFixed(2);
+    }
+
+    const gMax = Math.max(...gvals, ...(gvalsBase.length?gvalsBase:[gvals[0]]));
+    const gMin = Math.min(...gvals, ...(gvalsBase.length?gvalsBase:[gvals[gvals.length-1]]));
     const yPad = (gMax-gMin)*0.1 || 0.02;
     const yMin = gMin - yPad, yMax = gMax + yPad;
+    if(base){
+      const kstarB = kstarOf(base);
+      kstarLineBase = [{x:kstarB,y:yMin},{x:kstarB,y:yMax}];
+    }
 
     const kFrac = parseFloat(document.getElementById('pp-k').value);
     const kcur = kmin + kFrac*(kmax-kmin);
@@ -566,7 +750,9 @@ const MUTE = '#938f80';
           { label:'Δk/k', data:gcurve, borderColor:'#243b55', borderWidth:2, pointRadius:0, tension:0.1, parsing:false },
           { label:'zero', data:zeroLine, borderColor:GRID, borderWidth:1, borderDash:[3,3], pointRadius:0, parsing:false },
           { label:'k*', data:kstarLine, borderColor:'#b5562f', borderWidth:1.5, borderDash:[5,4], pointRadius:0, parsing:false },
-          { label:'k actual', type:'scatter', data:curPoint, backgroundColor:'#3f6b4d', borderColor:'#3f6b4d', pointRadius:6, showLine:false, parsing:false }
+          { label:'k actual', type:'scatter', data:curPoint, backgroundColor:'#3f6b4d', borderColor:'#3f6b4d', pointRadius:6, showLine:false, parsing:false },
+          { label:'Δk/k antes', data:gcurveBase, borderColor:'#938f8090', borderWidth:1.5, borderDash:[4,3], pointRadius:0, tension:0.1, parsing:false },
+          { label:'k* antes', data:kstarLineBase, borderColor:'#b5562f80', borderWidth:1.5, borderDash:[2,3], pointRadius:0, parsing:false }
         ]},
         options:{
           responsive:true, maintainAspectRatio:false, animation:{duration:200},
@@ -584,6 +770,8 @@ const MUTE = '#938f80';
       chart.data.datasets[1].data = zeroLine;
       chart.data.datasets[2].data = kstarLine;
       chart.data.datasets[3].data = curPoint;
+      chart.data.datasets[4].data = gcurveBase;
+      chart.data.datasets[5].data = kstarLineBase;
       chart.options.scales.x.min = kmin;
       chart.options.scales.x.max = kmax;
       chart.options.scales.y.min = yMin;
@@ -592,6 +780,25 @@ const MUTE = '#938f80';
       chart.update();
     }
   }
+
+  document.getElementById('pp-snap-btn').addEventListener('click', ()=>{
+    const btn = document.getElementById('pp-snap-btn');
+    if(base){
+      base = null;
+      btn.textContent = 'Fijar curva actual (antes del shock)';
+      btn.classList.remove('active');
+      document.getElementById('pp-base-stats').classList.remove('show');
+      document.getElementById('pp-base-legend').style.display = 'none';
+    } else {
+      base = get();
+      btn.textContent = 'Quitar comparación';
+      btn.classList.add('active');
+      document.getElementById('pp-base-stats').classList.add('show');
+      document.getElementById('pp-base-legend').style.display = '';
+    }
+    render();
+  });
+
   pids.forEach(id => document.getElementById('pp-'+id).addEventListener('input', render));
   document.getElementById('pp-k').addEventListener('input', render);
   render();
