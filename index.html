@@ -1015,7 +1015,7 @@ const MUTE = '#938f80';
     alpha:'Más participación del trabajo (menos del capital) → menor producto marginal del capital y menos inversión.',
     n:'Más n: hay que equipar más trabajadores. Gana el efecto directo porque Ramsey acumula menos capital que la regla de oro.',
     delta:'Más δ: hay que reponer más capital. Igual que n, el efecto neto es positivo.',
-    lambda:'Signo ambiguo: positivo solo si θ < 1 + ρ/(n+δ). Probá bajar θ para ver cómo cambia la pendiente.'
+    lambda:'Signo ambiguo: más λ exige equipar más rápido al trabajo efectivo (+), pero con θ alto los hogares adelantan consumo y cae K/Y (−). Positivo solo si θ < 1 + ρ/(n+δ): compará las curvas para distintos θ.'
   };
   const ARG_YEARS = [1993,1994,1995,1996,1997,1998,1999,2000,2001,2002,2003,2004,2005,2006];
   const ARG_IBIF = [19.1,19.9,17.9,18.1,19.4,19.9,18.0,16.2,14.2,12.0,15.1,19.2,21.5,23.4];
@@ -1066,28 +1066,50 @@ const MUTE = '#938f80';
     const pts = xs.map((x,i)=>({x, y:ys[i]}));
     const grPts = xs.map((x,i)=>({x, y:gr[i]}));
     const cur = ok ? [{x:v[xv], y:inv(v)*100}] : [];
+    // en la vista de λ: curvas de referencia para distintos θ, así se ve que la pendiente cambia de signo
+    const extras = [];
+    if(xv==='lambda'){
+      const thr = 1+v.rho/(v.n+v.delta);
+      const refs = [
+        {th:0.8, col:'#3f6b4d', dash:[], name:'θ = 0,8'},
+        {th:thr, col:'#938f80', dash:[2,3], name:'θ = '+num(thr,2)+' (umbral)'},
+        {th:3.911, col:'#b5562f', dash:[6,3], name:'θ = 3,91 (paper)'}
+      ].filter(r => Math.abs(r.th - v.theta) > 0.05);
+      refs.forEach(r=>{
+        const d = xs.map(x=>{ const w={...v, lambda:x, theta:r.th}; return {x, y: w.rho > (1-w.theta)*w.lambda ? inv(w)*100 : null}; });
+        extras.push({ label:r.name, data:d, borderColor:r.col, borderWidth:1.6, borderDash:r.dash, pointRadius:0, tension:0.2, extra:true });
+      });
+    }
+    // eje y ajustado a los datos para que se vean las pendientes
+    const allY = [...ys, ...gr, ARG_MIN, ARG_MAX, ...extras.flatMap(e=>e.data.map(p=>p.y))].filter(y=>y!=null && isFinite(y));
+    const yMin = Math.max(0, Math.floor((Math.min(...allY)-3)/5)*5), yMax = Math.ceil((Math.max(...allY)+3)/5)*5;
     if(!curve){
       curve = new Chart(el('p4-curve'), {
         type:'line',
         data:{ datasets:[
-          { label:'i_s', data:pts, borderColor:'#243b55', borderWidth:2, pointRadius:0, tension:0.2 },
+          { label: xv==='lambda' ? 'θ = '+num(v.theta,2)+' (actual)' : 'i_s', data:pts, borderColor:'#243b55', borderWidth:2, pointRadius:0, tension:0.2 },
           { label:'regla de oro', data:grPts, borderColor:'#938f80', borderWidth:1.5, borderDash:[5,4], pointRadius:0 },
-          { label:'actual', data:cur, borderColor:'#b5562f', backgroundColor:'#b5562f', pointRadius:6, showLine:false }
+          { label:'actual', data:cur, borderColor:'#b5562f', backgroundColor:'#b5562f', pointRadius:6, showLine:false },
+          ...extras
         ]},
         options:{
           responsive:true, maintainAspectRatio:false, animation:{duration:200}, parsing:false,
-          plugins:{legend:{display:false}, tooltip:{callbacks:{label:c=>c.dataset.label+': '+c.parsed.y.toFixed(1)+' %'}}},
+          plugins:{legend:{display:xv==='lambda', position:'top', align:'end', labels:{boxWidth:14, boxHeight:2, font:{size:11}, color:'#5b584f', filter:it=>it.datasetIndex===0 || (!!curve && !!curve.data.datasets[it.datasetIndex].extra)}}, tooltip:{callbacks:{label:c=>c.dataset.label+': '+c.parsed.y.toFixed(1)+' %'}}},
           scales:{
             x:{ type:'linear', min:lo, max:hi, title:{display:true,text:NAMES[xv],color:MUTE,font:{size:12}}, ticks:{color:MUTE,font:{size:10},maxTicksLimit:8}, grid:{display:false} },
-            y:{ min:0, max:70, title:{display:true,text:'% del PIB',color:MUTE,font:{size:11}}, ticks:{color:MUTE,font:{size:10},callback:val=>val+'%'}, grid:{color:GRID} }
+            y:{ min:yMin, max:yMax, title:{display:true,text:'% del PIB',color:MUTE,font:{size:11}}, ticks:{color:MUTE,font:{size:10},callback:val=>val+'%'}, grid:{color:GRID} }
           }
         },
         plugins:[bandPlugin]
       });
     } else {
+      curve.data.datasets = [curve.data.datasets[0], curve.data.datasets[1], curve.data.datasets[2], ...extras];
       curve.data.datasets[0].data = pts;
+      curve.data.datasets[0].label = xv==='lambda' ? 'θ = '+num(v.theta,2)+' (actual)' : 'i_s';
       curve.data.datasets[1].data = grPts;
       curve.data.datasets[2].data = cur;
+      curve.options.plugins.legend.display = xv==='lambda';
+      curve.options.scales.y.min = yMin; curve.options.scales.y.max = yMax;
       curve.options.scales.x.min = lo; curve.options.scales.x.max = hi;
       curve.options.scales.x.title.text = NAMES[xv];
       curve.update();
