@@ -277,9 +277,9 @@
 <body>
 
 <header class="hero">
-  <p class="kicker">Modelo de Solow &mdash; material de clase</p>
+  <p class="kicker">Modelos de Solow y Ramsey &mdash; material de clase</p>
   <h1>Convergencia en el modelo de Solow</h1>
-  <p>Tres formas de ver el mismo mecanismo: la trayectoria de <span class="eq">k(t)</span> hacia el estado estacionario, el diagrama clásico de ahorro y depreciación, y la diferencia entre &beta;-convergencia y &sigma;-convergencia entre economías.</p>
+  <p>Cuatro simuladores: la trayectoria de <span class="eq">k(t)</span> hacia el estado estacionario, el diagrama clásico de ahorro y depreciación, la diferencia entre &beta;-convergencia y &sigma;-convergencia entre economías y, con Ramsey, cuánta inversión es óptima.</p>
 </header>
 
 <nav class="tabs">
@@ -287,6 +287,7 @@
   <button class="tab-btn" data-tab="tab2">Diagrama clásico</button>
   <button class="tab-btn" data-tab="tab-phase">Diagrama de fases</button>
   <button class="tab-btn" data-tab="tab3">&beta; y &sigma;-convergencia</button>
+  <button class="tab-btn" data-tab="tab4">Inversión óptima</button>
 </nav>
 
 <main>
@@ -463,10 +464,78 @@
     <p class="note">La &beta;-convergencia es condición necesaria pero no suficiente para la &sigma;-convergencia: acá, sin shocks, la brecha |ln y<sub>A</sub> &minus; ln y<sub>B</sub>| cae de forma monótona porque ambas comparten el mismo k*. En la práctica, shocks idiosincráticos pueden frenar o revertir esa caída aunque la economía más pobre siga creciendo más rápido (&beta; &lt; 0).</p>
   </section>
 
+  <!-- TAB 4: inversión óptima (Ramsey, Katz-Lanteri-Vargas) -->
+  <section class="panel" id="tab4">
+    <h2>Inversión óptima en el modelo de Ramsey</h2>
+    <p class="desc">Tasa de inversión y ratio capital-producto de la senda balanceada óptima, según Katz, Lanteri y Vargas. Mové los parámetros fundamentales y compará con la inversión efectiva de Argentina.</p>
+    <div class="layout">
+      <div class="controls">
+        <div class="control"><label>Crec. horas trabajadas (n)<span class="val" id="p4-n-out">0.015</span></label><input type="range" id="p4-n" min="0" max="0.05" step="0.001" value="0.015"></div>
+        <div class="control"><label>Depreciación (&delta;)<span class="val" id="p4-delta-out">0.060</span></label><input type="range" id="p4-delta" min="0.02" max="0.12" step="0.001" value="0.06"></div>
+        <div class="control"><label>Progreso técnico (&lambda;)<span class="val" id="p4-lambda-out">0.010</span></label><input type="range" id="p4-lambda" min="0" max="0.04" step="0.001" value="0.01"></div>
+        <div class="control"><label>Participación del trabajo (&alpha;)<span class="val" id="p4-alpha-out">0.520</span></label><input type="range" id="p4-alpha" min="0.3" max="0.8" step="0.005" value="0.52"></div>
+        <div class="control"><label>Impaciencia (&rho;)<span class="val" id="p4-rho-out">0.037</span></label><input type="range" id="p4-rho" min="0.005" max="0.1" step="0.001" value="0.037"></div>
+        <div class="control"><label>Aversión a la sustitución (&theta;)<span class="val" id="p4-theta-out">3.911</span></label><input type="range" id="p4-theta" min="0.5" max="6" step="0.01" value="3.911"></div>
+        <button class="btn" id="p4-reset" type="button">Volver a los valores centrales (Tabla 2)</button>
+        <div class="stats">
+          <div class="stat"><p class="label">Inversión óptima i<sub>s</sub></p><p class="value" id="p4-is">&ndash;</p></div>
+          <div class="stat"><p class="label">K/Y de equilibrio</p><p class="value" id="p4-ky">&ndash;</p></div>
+          <div class="stat"><p class="label">f&prime;(k<sub>s</sub>)</p><p class="value" id="p4-fp">&ndash;</p></div>
+          <div class="stat"><p class="label">n+&delta;+&lambda; (regla de oro)</p><p class="value" id="p4-gr">&ndash;</p></div>
+        </div>
+        <p id="p4-warn" style="font-size:12px;color:var(--rust);margin:0;display:none;">&rho; &le; (1&minus;&theta;)&lambda;: la utilidad descontada no es finita y el problema no está bien definido.</p>
+        <div class="formula-box">
+          <p class="formula-eq">i<sub>s</sub> = (n+&delta;+&lambda;)(1&minus;&alpha;) / (&delta;+&rho;+&theta;&lambda;+n)</p>
+          <p class="formula-eq" style="font-size:14px;">K/Y = (1&minus;&alpha;) / (&delta;+&rho;+&theta;&lambda;+n)</p>
+          <button class="btn-link" data-target="demo-p4">Ver de dónde sale</button>
+          <div class="demo" id="demo-p4" hidden>
+            <p class="step">Ecuación de Euler con c&#775;/c = &lambda; en la senda balanceada:<span class="eqline">f&prime;(k<sub>s</sub>) = &delta;+&rho;+&theta;&lambda;+n</span></p>
+            <p class="step">Con Cobb-Douglas, f&prime;(k) = (1&minus;&alpha;)&middot;y/k, entonces:<span class="eqline">k<sub>s</sub>/y<sub>s</sub> = (1&minus;&alpha;)/(&delta;+&rho;+&theta;&lambda;+n)</span></p>
+            <p class="step">De la acumulación con k&#775;/k = &lambda;:<span class="eqline">c<sub>s</sub> = y<sub>s</sub> &minus; (n+&delta;+&lambda;)k<sub>s</sub></span></p>
+            <p class="step">Como i<sub>s</sub> = 1 &minus; c<sub>s</sub>/y<sub>s</sub>:<span class="eqline">i<sub>s</sub> = (n+&delta;+&lambda;)&middot;k<sub>s</sub>/y<sub>s</sub></span></p>
+            <p class="step">En la regla de oro f&prime;(k) = n+&delta;+&lambda;, y la inversión sería 1&minus;&alpha; (la participación del capital). Ramsey queda por debajo mientras &rho; &gt; (1&minus;&theta;)&lambda;.</p>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;margin:0 0 4px;">
+          <p style="font-size:13px;font-weight:600;margin:0;">Inversión óptima según el parámetro elegido</p>
+          <label style="font-size:13px;color:var(--ink-soft);">Eje horizontal:
+            <select id="p4-xvar" style="font-family:'Inter',sans-serif;font-size:13px;padding:4px 6px;border:1px solid var(--line);border-radius:4px;background:var(--panel);color:var(--ink);">
+              <option value="theta">&theta;</option>
+              <option value="rho">&rho;</option>
+              <option value="alpha">&alpha;</option>
+              <option value="n">n</option>
+              <option value="delta">&delta;</option>
+              <option value="lambda">&lambda;</option>
+            </select>
+          </label>
+        </div>
+        <p id="p4-xnote" style="font-size:12px;color:var(--ink-mute);margin:0 0 8px;">&nbsp;</p>
+        <div class="chart-wrap short"><canvas id="p4-curve" role="img" aria-label="Tasa de inversión óptima en función del parámetro elegido, con el resto fijo">Tasa de inversión óptima en función de un parámetro.</canvas></div>
+        <div class="legend">
+          <span><span class="swatch" style="background:#243b55"></span>i<sub>s</sub> óptima</span>
+          <span><span class="dot" style="background:#b5562f"></span>valor actual</span>
+          <span><span class="swatch" style="background:#938f80;border-top:2px dashed #938f80;height:0"></span>regla de oro (1&minus;&alpha;)</span>
+          <span><span class="swatch" style="background:#3f6b4d40;height:8px"></span>Argentina efectiva 1993&ndash;2006</span>
+        </div>
+
+        <p style="font-size:13px;font-weight:600;margin:1.5rem 0 4px;">Argentina: inversión efectiva vs. óptima</p>
+        <p style="font-size:12px;color:var(--ink-mute);margin:0 0 8px;">IBIF / PIB a precios corrientes (INDEC, base 1993) frente a la inversión óptima con los parámetros elegidos.</p>
+        <div class="chart-wrap short"><canvas id="p4-arg" role="img" aria-label="Inversión bruta interna fija como porcentaje del PIB en Argentina, 1993 a 2006, comparada con la inversión óptima del modelo">Inversión efectiva de Argentina por año frente a la inversión óptima del modelo.</canvas></div>
+        <div class="legend">
+          <span><span class="swatch" style="background:#3f6b4d;height:8px"></span>IBIF/PIB efectiva</span>
+          <span><span class="swatch" style="background:#243b55;border-top:2px dashed #243b55;height:0"></span>i<sub>s</sub> óptima</span>
+        </div>
+      </div>
+    </div>
+    <p class="note">Ojo con la notación: siguiendo al paper, acá &alpha; es la participación del <b>trabajo</b> (Y = K<sup>1&minus;&alpha;</sup>(AL)<sup>&alpha;</sup>), mientras que en las otras solapas &alpha; es la del capital. Con los valores centrales (Tabla 2) la inversión óptima es 27&nbsp;% del PIB y K/Y = 3,2. &theta; solo afecta al estado estacionario porque hay progreso técnico: con &lambda; = 0 desaparece de las fórmulas.</p>
+  </section>
+
 </main>
 
 <footer>
-  Material interactivo del modelo de Solow &mdash; &beta;-convergencia y &sigma;-convergencia.
+  Material interactivo del modelo de Solow &mdash; &beta;-convergencia y &sigma;-convergencia. Inversión óptima: Katz, Lanteri y Vargas; datos de inversión: INDEC.
 </footer>
 
 <script>
@@ -931,6 +1000,124 @@ const MUTE = '#938f80';
     }
   }
   ids.forEach(id => document.getElementById('p3-'+id).addEventListener('input', render));
+  render();
+})();
+
+// ================= PANEL 4: inversión óptima (Ramsey) =================
+(function(){
+  const ids = ['n','delta','lambda','alpha','rho','theta'];
+  const CENTRAL = {n:0.015, delta:0.06, lambda:0.01, alpha:0.52, rho:0.037, theta:3.911};
+  const RANGE = {n:[0,0.05], delta:[0.02,0.12], lambda:[0,0.04], alpha:[0.3,0.8], rho:[0.005,0.1], theta:[0.5,6]};
+  const NAMES = {n:'n', delta:'δ', lambda:'λ', alpha:'α', rho:'ρ', theta:'θ'};
+  const NOTES = {
+    theta:'Más θ: los hogares quieren suavizar más el consumo y adelantarlo → menos inversión.',
+    rho:'Más impaciencia: se valora más el presente → menos ahorro e inversión.',
+    alpha:'Más participación del trabajo (menos del capital) → menor producto marginal del capital y menos inversión.',
+    n:'Más n: hay que equipar más trabajadores. Gana el efecto directo porque Ramsey acumula menos capital que la regla de oro.',
+    delta:'Más δ: hay que reponer más capital. Igual que n, el efecto neto es positivo.',
+    lambda:'Signo ambiguo: positivo solo si θ < 1 + ρ/(n+δ). Probá bajar θ para ver cómo cambia la pendiente.'
+  };
+  const ARG_YEARS = [1993,1994,1995,1996,1997,1998,1999,2000,2001,2002,2003,2004,2005,2006];
+  const ARG_IBIF = [19.1,19.9,17.9,18.1,19.4,19.9,18.0,16.2,14.2,12.0,15.1,19.2,21.5,23.4];
+  const ARG_MIN = Math.min(...ARG_IBIF), ARG_MAX = Math.max(...ARG_IBIF);
+  const el = id => document.getElementById(id);
+  const get = () => Object.fromEntries(ids.map(id => [id, parseFloat(el('p4-'+id).value)]));
+  const D = v => v.delta + v.rho + v.theta*v.lambda + v.n;
+  const inv = v => (v.n+v.delta+v.lambda)*(1-v.alpha)/D(v);
+  const ky = v => (1-v.alpha)/D(v);
+  const pct = x => (x*100).toFixed(1).replace('.',',')+' %';
+  const num = (x,d) => x.toFixed(d).replace('.',',');
+  let curve, arg;
+
+  // banda sombreada para la inversión efectiva de Argentina
+  const bandPlugin = {
+    id:'p4band',
+    beforeDatasetsDraw(chart){
+      const {ctx, chartArea:a, scales:{y}} = chart;
+      const top = y.getPixelForValue(ARG_MAX), bot = y.getPixelForValue(ARG_MIN);
+      ctx.save(); ctx.fillStyle = 'rgba(63,107,77,0.13)';
+      ctx.fillRect(a.left, top, a.right-a.left, bot-top); ctx.restore();
+    }
+  };
+
+  function render(){
+    const v = get();
+    ids.forEach(id => el('p4-'+id+'-out').textContent = v[id].toFixed(id==='theta'?2:3));
+    const ok = v.rho > (1-v.theta)*v.lambda;
+    el('p4-warn').style.display = ok ? 'none' : 'block';
+    el('p4-is').textContent = ok ? pct(inv(v)) : '–';
+    el('p4-ky').textContent = ok ? num(ky(v),2) : '–';
+    el('p4-fp').textContent = num(D(v),3);
+    el('p4-gr').textContent = num(v.n+v.delta+v.lambda,3);
+
+    const xv = el('p4-xvar').value;
+    const [lo,hi] = RANGE[xv];
+    const N = 80, xs = [], ys = [], gr = [];
+    for(let i=0;i<=N;i++){
+      const x = lo + (hi-lo)*i/N, w = {...v, [xv]:x};
+      xs.push(x);
+      ys.push(w.rho > (1-w.theta)*w.lambda ? inv(w)*100 : null);
+      gr.push((1-w.alpha)*100);
+    }
+    let note = NOTES[xv];
+    if(xv==='lambda'){ const thr = 1+v.rho/(v.n+v.delta); note += ' Umbral actual: θ = '+num(thr,2)+(v.theta<thr?' → pendiente positiva.':' → pendiente negativa.'); }
+    el('p4-xnote').textContent = note;
+
+    const pts = xs.map((x,i)=>({x, y:ys[i]}));
+    const grPts = xs.map((x,i)=>({x, y:gr[i]}));
+    const cur = ok ? [{x:v[xv], y:inv(v)*100}] : [];
+    if(!curve){
+      curve = new Chart(el('p4-curve'), {
+        type:'line',
+        data:{ datasets:[
+          { label:'i_s', data:pts, borderColor:'#243b55', borderWidth:2, pointRadius:0, tension:0.2 },
+          { label:'regla de oro', data:grPts, borderColor:'#938f80', borderWidth:1.5, borderDash:[5,4], pointRadius:0 },
+          { label:'actual', data:cur, borderColor:'#b5562f', backgroundColor:'#b5562f', pointRadius:6, showLine:false }
+        ]},
+        options:{
+          responsive:true, maintainAspectRatio:false, animation:{duration:200}, parsing:false,
+          plugins:{legend:{display:false}, tooltip:{callbacks:{label:c=>c.dataset.label+': '+c.parsed.y.toFixed(1)+' %'}}},
+          scales:{
+            x:{ type:'linear', min:lo, max:hi, title:{display:true,text:NAMES[xv],color:MUTE,font:{size:12}}, ticks:{color:MUTE,font:{size:10},maxTicksLimit:8}, grid:{display:false} },
+            y:{ min:0, max:70, title:{display:true,text:'% del PIB',color:MUTE,font:{size:11}}, ticks:{color:MUTE,font:{size:10},callback:val=>val+'%'}, grid:{color:GRID} }
+          }
+        },
+        plugins:[bandPlugin]
+      });
+    } else {
+      curve.data.datasets[0].data = pts;
+      curve.data.datasets[1].data = grPts;
+      curve.data.datasets[2].data = cur;
+      curve.options.scales.x.min = lo; curve.options.scales.x.max = hi;
+      curve.options.scales.x.title.text = NAMES[xv];
+      curve.update();
+    }
+
+    const opt = ARG_YEARS.map(()=> ok ? inv(v)*100 : null);
+    if(!arg){
+      arg = new Chart(el('p4-arg'), {
+        type:'bar',
+        data:{ labels:ARG_YEARS, datasets:[
+          { type:'line', label:'i_s óptima', data:opt, borderColor:'#243b55', borderWidth:2, borderDash:[6,4], pointRadius:0 },
+          { type:'bar', label:'IBIF/PIB', data:ARG_IBIF, backgroundColor:'#3f6b4d', borderRadius:2, maxBarThickness:28 }
+        ]},
+        options:{
+          responsive:true, maintainAspectRatio:false, animation:{duration:200},
+          plugins:{legend:{display:false}, tooltip:{callbacks:{label:c=>c.dataset.label+': '+c.parsed.y.toFixed(1)+' %'}}},
+          scales:{
+            x:{ ticks:{color:MUTE,font:{size:10}}, grid:{display:false} },
+            y:{ min:0, title:{display:true,text:'% del PIB',color:MUTE,font:{size:11}}, ticks:{color:MUTE,font:{size:10},callback:val=>val+'%'}, grid:{color:GRID} }
+          }
+        }
+      });
+    } else {
+      arg.data.datasets[0].data = opt;
+      arg.update();
+    }
+  }
+  ids.forEach(id => el('p4-'+id).addEventListener('input', render));
+  el('p4-xvar').addEventListener('change', render);
+  el('p4-reset').addEventListener('click', ()=>{ ids.forEach(id => el('p4-'+id).value = CENTRAL[id]); render(); });
   render();
 })();
 </script>
