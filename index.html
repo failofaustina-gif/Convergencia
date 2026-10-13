@@ -271,6 +271,14 @@
   .demo[hidden]{ display:none; }
   .demo .step{ margin:0 0 8px; }
   .demo .step:last-child{ margin-bottom:0; }
+  .p4-row{ display:flex; gap:16px; align-items:stretch; }
+  .p4-live{ width:270px; flex:0 0 270px; margin:0; font-size:13px; color:var(--ink-soft); display:flex; flex-direction:column; gap:8px; justify-content:center; }
+  .p4-live .ln{ font-family:'Source Serif 4',serif; font-style:italic; font-size:15px; color:var(--ink); margin:0; line-height:1.5; }
+  .p4-live .hl{ color:var(--rust); font-weight:600; font-style:normal; }
+  .p4-live .res{ font-family:'Source Serif 4',serif; font-size:19px; color:var(--navy); margin:0; }
+  .p4-live .frac{ display:inline-flex; flex-direction:column; align-items:center; vertical-align:middle; }
+  .p4-live .frac span:first-child{ border-bottom:1px solid var(--ink); padding:0 3px; }
+  @media (max-width: 720px){ .p4-row{ flex-direction:column; } .p4-live{ width:auto; flex:none; } }
   .demo .eqline{ font-family:'Source Serif 4',serif; font-style:italic; color:var(--ink); display:block; margin:2px 0; }
 </style>
 </head>
@@ -512,7 +520,10 @@
           </label>
         </div>
         <p id="p4-xnote" style="font-size:12px;color:var(--ink-mute);margin:0 0 8px;">&nbsp;</p>
-        <div class="chart-wrap short"><canvas id="p4-curve" role="img" aria-label="Tasa de inversión óptima en función del parámetro elegido, con el resto fijo">Tasa de inversión óptima en función de un parámetro.</canvas></div>
+        <div class="p4-row">
+        <div class="chart-wrap short" style="flex:1;min-width:0;"><canvas id="p4-curve" role="img" aria-label="Tasa de inversión óptima en función del parámetro elegido, con el resto fijo">Tasa de inversión óptima en función de un parámetro.</canvas></div>
+        <div class="formula-box p4-live" id="p4-live" aria-live="polite"></div>
+        </div>
         <div class="legend">
           <span><span class="swatch" style="background:#243b55"></span>i<sub>s</sub> óptima</span>
           <span><span class="dot" style="background:#b5562f"></span>valor actual</span>
@@ -1062,6 +1073,18 @@ const MUTE = '#938f80';
     let note = NOTES[xv];
     if(xv==='lambda'){ const thr = 1+v.rho/(v.n+v.delta); note += ' Umbral actual: θ = '+num(thr,2)+(v.theta<thr?' → pendiente positiva.':' → pendiente negativa.'); }
     el('p4-xnote').textContent = note;
+
+    // ecuación con los valores actuales, resaltando el parámetro del eje
+    const f3 = (k)=>{ const s = v[k].toFixed(k==='theta'?2:3).replace('.',','); return k===xv ? '<span class="hl">'+s+'</span>' : s; };
+    const numr = (v.n+v.delta+v.lambda)*(1-v.alpha), den = D(v);
+    el('p4-live').innerHTML =
+      '<p style="margin:0;font-size:12px;color:var(--ink-mute);">Con los valores actuales (en naranja, '+NAMES[xv]+'):</p>'+
+      '<p style="margin:0;font-size:12px;font-weight:600;color:var(--ink-soft);">Numerador (n+δ+λ)(1−α)</p>'+
+      '<p class="ln">('+f3('n')+' + '+f3('delta')+' + '+f3('lambda')+') · (1 − '+f3('alpha')+') = <b>'+num(numr,4)+'</b></p>'+
+      '<p style="margin:0;font-size:12px;font-weight:600;color:var(--ink-soft);">Denominador δ+ρ+θλ+n</p>'+
+      '<p class="ln">'+f3('delta')+' + '+f3('rho')+' + '+f3('theta')+' · '+f3('lambda')+' + '+f3('n')+' = <b>'+num(den,4)+'</b></p>'+
+      '<p class="res">i<sub>s</sub> = '+num(numr,4)+' / '+num(den,4)+' = '+(ok ? pct(inv(v)) : '–')+'</p>'+
+      '<p style="margin:0;font-size:12px;">El numerador es la inversión necesaria para sostener el capital; el denominador, el rendimiento exigido al capital, f′(k<sub>s</sub>).</p>';
 
     const pts = xs.map((x,i)=>({x, y:ys[i]}));
     const grPts = xs.map((x,i)=>({x, y:gr[i]}));
