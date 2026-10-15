@@ -271,6 +271,11 @@
   .demo[hidden]{ display:none; }
   .demo .step{ margin:0 0 8px; }
   .demo .step:last-child{ margin-bottom:0; }
+  table.p4-eff{ width:100%; border-collapse:collapse; font-size:13px; background:var(--panel); border:1px solid var(--line); }
+  table.p4-eff th{ text-align:left; background:var(--navy); color:#fff; font-weight:600; padding:8px 10px; }
+  table.p4-eff td{ padding:8px 10px; border-top:1px solid var(--line); vertical-align:top; color:var(--ink); }
+  table.p4-eff td:nth-child(2){ white-space:nowrap; font-weight:600; }
+  table.p4-eff .up{ color:var(--moss); } table.p4-eff .down{ color:var(--rust); }
   .p4-row{ display:flex; gap:16px; align-items:stretch; }
   .p4-live{ width:270px; flex:0 0 270px; margin:0; font-size:13px; color:var(--ink-soft); display:flex; flex-direction:column; gap:8px; justify-content:center; }
   .p4-live .ln{ font-family:'Source Serif 4',serif; font-style:italic; font-size:15px; color:var(--ink); margin:0; line-height:1.5; }
@@ -478,12 +483,12 @@
     <p class="desc">Tasa de inversión y ratio capital-producto de la senda balanceada óptima, según Katz, Lanteri y Vargas. Mové los parámetros fundamentales y compará con la inversión efectiva de Argentina.</p>
     <div class="layout">
       <div class="controls">
-        <div class="control"><label>Crec. horas trabajadas (n)<span class="val" id="p4-n-out">0.015</span></label><input type="range" id="p4-n" min="0" max="0.05" step="0.001" value="0.015"></div>
-        <div class="control"><label>Depreciación (&delta;)<span class="val" id="p4-delta-out">0.060</span></label><input type="range" id="p4-delta" min="0.02" max="0.12" step="0.001" value="0.06"></div>
-        <div class="control"><label>Progreso técnico (&lambda;)<span class="val" id="p4-lambda-out">0.010</span></label><input type="range" id="p4-lambda" min="0" max="0.04" step="0.001" value="0.01"></div>
-        <div class="control"><label>Participación del trabajo (&alpha;)<span class="val" id="p4-alpha-out">0.520</span></label><input type="range" id="p4-alpha" min="0.3" max="0.8" step="0.005" value="0.52"></div>
-        <div class="control"><label>Impaciencia (&rho;)<span class="val" id="p4-rho-out">0.037</span></label><input type="range" id="p4-rho" min="0.005" max="0.1" step="0.001" value="0.037"></div>
-        <div class="control"><label>Aversión a la sustitución (&theta;)<span class="val" id="p4-theta-out">3.911</span></label><input type="range" id="p4-theta" min="0.5" max="6" step="0.01" value="3.911"></div>
+        <div class="control"><label>Crec. horas trabajadas (n)<span class="val" id="p4-n-out">0.015</span></label><input type="range" id="p4-n" min="0.005" max="0.03" step="0.001" value="0.015"></div>
+        <div class="control"><label>Depreciación (&delta;)<span class="val" id="p4-delta-out">0.060</span></label><input type="range" id="p4-delta" min="0.03" max="0.1" step="0.001" value="0.06"></div>
+        <div class="control"><label>Progreso técnico (&lambda;)<span class="val" id="p4-lambda-out">0.010</span></label><input type="range" id="p4-lambda" min="0.005" max="0.015" step="0.0005" value="0.01"></div>
+        <div class="control"><label>Participación del trabajo (&alpha;)<span class="val" id="p4-alpha-out">0.520</span></label><input type="range" id="p4-alpha" min="0.33" max="0.66" step="0.005" value="0.52"></div>
+        <div class="control"><label>Impaciencia (&rho;)<span class="val" id="p4-rho-out">0.037</span></label><input type="range" id="p4-rho" min="0.026" max="0.048" step="0.001" value="0.037"></div>
+        <div class="control"><label>Aversión a la sustitución (&theta;)<span class="val" id="p4-theta-out">3.911</span></label><input type="range" id="p4-theta" min="2.9" max="4.9" step="0.01" value="3.911"></div>
         <button class="btn" id="p4-reset" type="button">Volver a los valores centrales (Tabla 2)</button>
         <div class="stats">
           <div class="stat"><p class="label">Inversión óptima i<sub>s</sub></p><p class="value" id="p4-is">&ndash;</p></div>
@@ -540,7 +545,21 @@
         </div>
       </div>
     </div>
-    <p class="note">Ojo con la notación: siguiendo al paper, acá &alpha; es la participación del <b>trabajo</b> (Y = K<sup>1&minus;&alpha;</sup>(AL)<sup>&alpha;</sup>), mientras que en las otras solapas &alpha; es la del capital. Con los valores centrales (Tabla 2) la inversión óptima es 27&nbsp;% del PIB y K/Y = 3,2. &theta; solo afecta al estado estacionario porque hay progreso técnico: con &lambda; = 0 desaparece de las fórmulas.</p>
+    <div style="margin-top:2rem;">
+      <p style="font-size:13px;font-weight:600;margin:0 0 8px;">Efecto de cada parámetro sobre la inversión óptima (valores estimados por los autores)</p>
+      <table class="p4-eff">
+        <thead><tr><th>Parámetro</th><th>Efecto</th><th>Mecanismo</th></tr></thead>
+        <tbody>
+          <tr><td>n &mdash; crec. horas trabajadas</td><td class="up">&#9650; Positivo</td><td>Hay más trabajadores a los que equipar: para mantener el capital hay que invertir más.</td></tr>
+          <tr><td>&delta; &mdash; depreciación</td><td class="up">&#9650; Positivo</td><td>Hay más capital que se desgasta y hay que reponer.</td></tr>
+          <tr><td>&lambda; &mdash; progreso técnico</td><td class="down">&#9660; Negativo</td><td>Los hogares saben que van a ser más ricos y, como quieren un consumo parejo, adelantan consumo: ahorran menos y eligen menos capital por unidad de producto.</td></tr>
+          <tr><td>&alpha; &mdash; participación del trabajo</td><td class="down">&#9660; Negativo</td><td>Menos participación del capital: menor producto marginal del capital.</td></tr>
+          <tr><td>&rho; &mdash; impaciencia</td><td class="down">&#9660; Negativo</td><td>Se valora más el presente: menos ahorro.</td></tr>
+          <tr><td>&theta; &mdash; aversión a la sustitución</td><td class="down">&#9660; Negativo</td><td>Los hogares quieren suavizar el consumo y lo adelantan.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="note">Ojo con la notación: siguiendo al paper, acá &alpha; es la participación del <b>trabajo</b> (Y = K<sup>1&minus;&alpha;</sup>(AL)<sup>&alpha;</sup>), mientras que en las otras solapas &alpha; es la del capital. Con los valores centrales (Tabla 2) la inversión óptima es 27&nbsp;% del PIB y K/Y = 3,2. Los sliders se mueven dentro de los rangos del análisis de sensibilidad del paper (Tablas 3 y 4).</p>
   </section>
 
 </main>
@@ -1018,15 +1037,15 @@ const MUTE = '#938f80';
 (function(){
   const ids = ['n','delta','lambda','alpha','rho','theta'];
   const CENTRAL = {n:0.015, delta:0.06, lambda:0.01, alpha:0.52, rho:0.037, theta:3.911};
-  const RANGE = {n:[0,0.05], delta:[0.02,0.12], lambda:[0,0.04], alpha:[0.3,0.8], rho:[0.005,0.1], theta:[0.5,6]};
+  const RANGE = {n:[0.005,0.03], delta:[0.03,0.1], lambda:[0.005,0.015], alpha:[0.33,0.66], rho:[0.026,0.048], theta:[2.9,4.9]};
   const NAMES = {n:'n', delta:'δ', lambda:'λ', alpha:'α', rho:'ρ', theta:'θ'};
   const NOTES = {
-    theta:'Más θ: los hogares quieren suavizar más el consumo y adelantarlo → menos inversión.',
-    rho:'Más impaciencia: se valora más el presente → menos ahorro e inversión.',
-    alpha:'Más participación del trabajo (menos del capital) → menor producto marginal del capital y menos inversión.',
-    n:'Más n: hay que equipar más trabajadores. Gana el efecto directo porque Ramsey acumula menos capital que la regla de oro.',
-    delta:'Más δ: hay que reponer más capital. Igual que n, el efecto neto es positivo.',
-    lambda:'Signo ambiguo: más λ exige equipar más rápido al trabajo efectivo (+), pero con θ alto los hogares adelantan consumo y cae K/Y (−). Positivo solo si θ < 1 + ρ/(n+δ): bajá θ por debajo del umbral y la pendiente se da vuelta.'
+    theta:'▼ Más θ: los hogares quieren un consumo más parejo y adelantan consumo → menos ahorro e inversión.',
+    rho:'▼ Más ρ: más impaciencia, se valora más el presente → menos ahorro e inversión.',
+    alpha:'▼ Más α (participación del trabajo): menos participación del capital, menor producto marginal del capital → menos inversión.',
+    n:'▲ Más n: hay más trabajadores a los que equipar; para mantener el capital hay que invertir más → más inversión.',
+    delta:'▲ Más δ: hay más capital que se desgasta y hay que reponer → más inversión.',
+    lambda:'▼ Más λ: los hogares saben que van a ser más ricos y, como quieren un consumo parejo (θ alto), adelantan consumo: ahorran menos y eligen menos capital por unidad de producto → menos inversión (Tabla 4).'
   };
   const ARG_YEARS = [1993,1994,1995,1996,1997,1998,1999,2000,2001,2002,2003,2004,2005,2006];
   const ARG_IBIF = [19.1,19.9,17.9,18.1,19.4,19.9,18.0,16.2,14.2,12.0,15.1,19.2,21.5,23.4];
@@ -1071,7 +1090,6 @@ const MUTE = '#938f80';
       gr.push((1-w.alpha)*100);
     }
     let note = NOTES[xv];
-    if(xv==='lambda'){ const thr = 1+v.rho/(v.n+v.delta); note += ' Umbral actual: θ = '+num(thr,2)+(v.theta<thr?' → pendiente positiva.':' → pendiente negativa.'); }
     el('p4-xnote').textContent = note;
 
     // ecuación con los valores actuales, resaltando el parámetro del eje
